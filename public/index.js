@@ -40,7 +40,12 @@ document.querySelector(".register-button").addEventListener("click", () => {
 
     let confirmButton = addElement("button", "button", "confirmbutton");
     confirmButton.textContent = "Register";
-    confirmButton.addEventListener("click", () => {
+    confirmButton.addEventListener("click", async () => {
+        
+        let existingErrorContainer = document.getElementById("errorContainer");
+        if (existingErrorContainer) {
+            existingErrorContainer.remove();
+        }
         let usernameValue = username.value.trim();
         let emailValue = email.value.trim();
         let passwordValue = password.value;
@@ -77,24 +82,45 @@ document.querySelector(".register-button").addEventListener("click", () => {
             errorMessages.push("Password confirmation does not match.");
         }
 
-        if (errorMessages.length > 0) {
-            let errorDiv = document.createElement("div");
-            errorDiv.setAttribute("id", "errorContainer");
-
-            errorMessages.forEach((message) => {
-                let errorMessage = document.createElement("p");
-                errorMessage.textContent = message;
-                errorDiv.appendChild(errorMessage);
-            });
-
-            let existingErrorContainer = document.getElementById("errorContainer");
-            if (existingErrorContainer) {
-                existingErrorContainer.remove();
+        
+        if (errorMessages.length === 0) {
+            try {
+                const response = await fetch('/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username: usernameValue,
+                        email: emailValue,
+                        password: passwordValue,
+                    }),
+                });
+                
+                const data = await response.json();
+    
+                if (response.ok) {
+                    console.log(data.message);
+                } else {
+                    console.error(data.error);
+                    errorMessages.push(data.error);
+                }
+            } catch (error) {
+                console.error("Error connecting to server:", error.message);
+                errorMessages.push("Error connecting to server:", error.message);
             }
+        }
 
+        if (errorMessages.length > 0) {
+                let errorDiv = document.createElement("div");
+                errorDiv.setAttribute("id", "errorContainer");
+    
+                errorMessages.forEach((message) => {
+                    let errorMessage = document.createElement("p");
+                    errorMessage.textContent = message;
+                    errorDiv.appendChild(errorMessage);
+            });
             content.appendChild(errorDiv);
-        } else {
-            console.log("Registration successful!");
         }
     });
     register.appendChild(confirmButton);
