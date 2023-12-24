@@ -47,14 +47,20 @@ footer {
     padding: 10px;
     cursor: pointer;
 }
+#popup-container {
+    display: flex;
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
 
 #login-popup,
 #register-popup {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%,-50%);
-    width: 380px;
+    position: relative;
+    margin: auto;
+    width: 360px;
     padding: 30px;
     background: #333;
     box-shadow: 2px 2px 5px 5px rgba(0, 0, 0, 0.15);

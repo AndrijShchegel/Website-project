@@ -1,16 +1,36 @@
+const closeAfterClickingOutside = (id) => {
+    let isFirstClick  = true;
+    const eventListener = (ev) => {
+        if (isFirstClick) {
+            isFirstClick = false;
+            return;
+        }
+
+        const element = document.getElementById(`${id}`);
+        if (element && !element.contains(ev.target)) {
+            document.getElementById("popup-container").remove();
+            document.removeEventListener("click", eventListener);
+        }
+    };
+
+    document.addEventListener("click", eventListener);
+
+    return eventListener;
+};
+
 document.querySelector(".register-button").addEventListener("click", () => {
-    if (document.getElementById("register-popup")) {
-        document.getElementById("register-popup").remove();
-    } else if (document.getElementById("login-popup")) {
-        document.getElementById("login-popup").remove();
-    }
+    let cotainer = document.createElement("div");
+    cotainer.setAttribute("id", "popup-container");
+
+    const closeEvent = closeAfterClickingOutside("register-popup");
     let register = document.createElement("div");
     register.setAttribute("id", "register-popup");
 
     let exitButton = addElement("button", "button", "closebutton");
     exitButton.textContent = "X";
     exitButton.addEventListener("click", () => {
-        document.getElementById("register-popup").remove();
+        document.getElementById("popup-container").remove();
+        document.removeEventListener("click", closeEvent);
     });
     register.appendChild(exitButton);
 
@@ -117,19 +137,23 @@ document.querySelector(".register-button").addEventListener("click", () => {
                     errorDiv.appendChild(errorMessage);
             });
             content.appendChild(errorDiv);
+        } else {
+            document.getElementById("popup-container").remove();
+            document.removeEventListener("click", closeEvent);
         }
     });
     register.appendChild(confirmButton);
 
-    document.body.appendChild(register);
+    cotainer.appendChild(register);
+    document.body.appendChild(cotainer);
+
 });
 
 document.querySelector(".login-button").addEventListener("click", () => {
-    if (document.getElementById("login-popup")) {
-        document.getElementById("login-popup").remove();
-    } else if (document.getElementById("register-popup")) {
-        document.getElementById("register-popup").remove();
-    }
+    let cotainer = document.createElement("div");
+    cotainer.setAttribute("id", "popup-container");
+
+    const closeEvent = closeAfterClickingOutside("login-popup");
 
     let login = document.createElement("div");
     login.setAttribute("id", "login-popup");
@@ -137,7 +161,8 @@ document.querySelector(".login-button").addEventListener("click", () => {
     let exitButton = addElement("button", "button", "closebutton");
     exitButton.textContent = "X";
     exitButton.addEventListener("click", () => {
-        document.getElementById("login-popup").remove();
+        document.getElementById("popup-container").remove();
+        document.removeEventListener("click", closeEvent);
     });
     login.appendChild(exitButton);
 
@@ -218,12 +243,14 @@ document.querySelector(".login-button").addEventListener("click", () => {
 
             content.appendChild(errorDiv);
         } else {
-            console.log("Login successful!");
+            document.getElementById("popup-container").remove();
+            document.removeEventListener("click", closeEvent);
         }
     });
     login.appendChild(confirmButton);
+    cotainer.appendChild(login);
 
-    document.body.appendChild(login);
+    document.body.appendChild(cotainer);
 });
 
 const addElement = (element, type, name = type) => {
