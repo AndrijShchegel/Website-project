@@ -99,14 +99,10 @@ document.querySelector(".register-button").addEventListener("click", () => {
                 
                 const data = await response.json();
     
-                if (response.ok) {
-                    console.log(data.message);
-                } else {
-                    console.error(data.error);
+                if (!response.ok) {
                     errorMessages.push(data.error);
                 }
             } catch (error) {
-                console.error("Error connecting to server:", error.message);
                 errorMessages.push("Error connecting to server:", error.message);
             }
         }
@@ -163,7 +159,7 @@ document.querySelector(".login-button").addEventListener("click", () => {
     
     let confirmButton = addElement("button", "button", "confirmbutton");
     confirmButton.textContent = "Login";
-    confirmButton.addEventListener("click", () => {
+    confirmButton.addEventListener("click", async () => {
         let emailValue = email.value.trim();
         let passwordValue = password.value;
 
@@ -180,6 +176,29 @@ document.querySelector(".login-button").addEventListener("click", () => {
             errorMessages.push("Password must be greater than 6 characters.");
         }   else if (passwordValue.length > 200) {
             errorMessages.push("Password must be less than 200 characters.");
+        }
+
+        if (errorMessages.length === 0) {
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: emailValue,
+                        password: passwordValue,
+                    }),
+                });
+                
+                const data = await response.json();
+    
+                if (!response.ok) {
+                    errorMessages.push(data.error);
+                }
+            } catch (error) {
+                errorMessages.push("Error connecting to server:", error.message);
+            }
         }
 
         if (errorMessages.length > 0) {

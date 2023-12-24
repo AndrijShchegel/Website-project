@@ -18,13 +18,12 @@ app.use(express.json());
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
-    console.log("Helo");
 });
 
 app.post('/register', async (req, res) => {
     const { username, email, password } = req.body;
     const client = await pool.connect();
-    const select = `SELECT * FROM users Where email = $1`
+    const select = `SELECT * FROM users WHERE email = $1`
     const insert = 'INSERT INTO users (name, email, password) VALUES ($1, $2, $3)';
     try {
         let results = await client.query(select, [email]);
@@ -34,14 +33,30 @@ app.post('/register', async (req, res) => {
 
         await client.query(insert, [username, email, password]);
         
-        console.log("Registration successful! User inserted into PostgreSQL.");
-        
-        client.release();
         res.status(200).json({ message: 'Registration successful!' });
         }
     } catch (error) {
-        console.error("Error inserting data into PostgreSQL:", error.message);
         res.status(500).json({ error: 'Internal Server Error' });
+    } finally {
+        client.release();
+    }
+});
+
+app.post('/login', async (req, res) => {
+    const { email, password } = req.body;
+    const client = await pool.connect();
+    const select = `SELECT * FROM users WHERE email = $1 AND password = $2`
+    try {
+        let results = await client.query(select, [email, password]);
+        if(results.rows.length === 0) {
+            res.status(400).json({ error: 'Invalid email or password'});
+        } else {
+            res.status(200).json({ message: 'Login successful!' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: 'Internal Server Error' });
+    } finally {
+        client.release();
     }
 });
 
