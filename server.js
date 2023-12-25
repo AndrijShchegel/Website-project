@@ -1,6 +1,8 @@
+"use strict";
 const express = require('express');
 const { Pool } = require('pg');
 const path = require('path');
+const jwt = require('jsonwebtoken');
 
 const app = express();
 const port = 3000;
@@ -51,13 +53,25 @@ app.post('/login', async (req, res) => {
         if(results.rows.length === 0) {
             res.status(400).json({ error: 'Invalid email or password'});
         } else {
-            res.status(200).json({ message: 'Login successful!' });
+            let token = jwt.sign({ email: email }, 'secret-1998', { expiresIn: '1d' });
+            res.status(200).json({ message: 'Login successful!', token });
         }
     } catch (error) {
         res.status(500).json({ error: 'Internal Server Error' });
     } finally {
         client.release();
     }
+});
+
+app.post('/verify', (req, res) => {
+    const { token } = req.body;
+    jwt.verify(token, 'secret-1998', (err, decoded) => {
+        if (err) {
+            res.status(401).json({ error: 'Your token had expired. Please re-login.' });
+        } else {
+            res.status(200).json({ email: decoded.email });
+        }
+    });
 });
 
 app.listen(port, () => {

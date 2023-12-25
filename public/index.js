@@ -1,3 +1,4 @@
+"use strict";
 const closeAfterClickingOutside = (id) => {
     let isFirstClick  = true;
     const eventListener = (ev) => {
@@ -220,6 +221,9 @@ document.querySelector(".login-button").addEventListener("click", () => {
     
                 if (!response.ok) {
                     errorMessages.push(data.error);
+                } else {
+                    localStorage.setItem('token', data.token);
+                    checkForToken();
                 }
             } catch (error) {
                 errorMessages.push("Error connecting to server:", error.message);
@@ -259,3 +263,50 @@ const addElement = (element, type, name = type) => {
     elem.setAttribute("id", `${name}`);
     return elem;
 };
+
+
+const checkForToken = async () => {
+    const storedToken = localStorage.getItem('token');
+    if (storedToken) {
+        try {
+            const response = await fetch('/verify', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ token: storedToken }),
+            });
+            const result = await response.json();
+
+            if (!response.ok) {
+                createNotification("alert", result.error);
+                console.error('Token verification failed:', result.error);
+            }
+        } catch (error) {
+            createNotification("alert", error);
+            console.error('Error verifying token:', error);
+        }
+    }
+};
+
+checkForToken();
+
+const createNotification = (className, text) => {
+    let notification = document.getElementById("notification");
+
+    if (!notification) {
+        notification = document.createElement("div");
+        notification.setAttribute("id", "notification");
+        document.body.appendChild(notification);
+    }
+    let alert = document.createElement("div");
+    alert.setAttribute("class", `${className}`);
+    alert.textContent = text;
+    alert.addEventListener("click", () => {
+        alert.remove();
+        if (notification.childElementCount === 0) {
+            notification.remove();
+        }
+    });
+    notification.appendChild(alert);
+}

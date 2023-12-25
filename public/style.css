@@ -37,6 +37,7 @@ footer {
     padding: 10px;
     cursor: pointer;
 }
+
 .register-button {
     position: absolute;
     top: 10px;
@@ -47,6 +48,7 @@ footer {
     padding: 10px;
     cursor: pointer;
 }
+
 #popup-container {
     display: flex;
     position: fixed;
@@ -142,3 +144,24 @@ footer {
     border-radius: 10px;
     cursor: pointer;
 }
+
+
+#notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+}
+
+#notification .alert {
+        padding: 10px;
+        background-color: #f44336;
+        color: white;
+        cursor: pointer;
+        transition: 0.3s;
+        box-shadow: 2px 2px 5px 5px rgba(0, 0, 0, 0.15);
+        border-radius: 15px;
+}
+
+#notification .alert.success {background-color: #04AA6D;}
+#notification .alert.info {background-color: #2196F3;}
+#notification .alert.warning {background-color: #ff9800;}
