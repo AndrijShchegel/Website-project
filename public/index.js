@@ -22,10 +22,12 @@ const closeAfterClickingOutside = (id) => {
 document.querySelector(".register-button").addEventListener("click", () => {
     let cotainer = document.createElement("div");
     cotainer.setAttribute("id", "popup-container");
+    document.body.appendChild(cotainer);
 
     const closeEvent = closeAfterClickingOutside("register-popup");
     let register = document.createElement("div");
     register.setAttribute("id", "register-popup");
+    cotainer.appendChild(register);
 
     let exitButton = addElement("button", "button", "closebutton");
     exitButton.textContent = "X";
@@ -43,7 +45,7 @@ document.querySelector(".register-button").addEventListener("click", () => {
     content.setAttribute("class", "content");
     register.appendChild(content);
 
-    let username = addElement("input", "text", "name");
+    let username = addElement("input", "text", "username");
     username.setAttribute("placeholder", "Username");
     content.appendChild(username);
 
@@ -61,94 +63,108 @@ document.querySelector(".register-button").addEventListener("click", () => {
 
     let confirmButton = addElement("button", "button", "confirmbutton");
     confirmButton.textContent = "Register";
-    confirmButton.addEventListener("click", async () => {
+    confirmButton.addEventListener("click", () => handleRegistration(content));
+    register.appendChild(confirmButton);
+});
+
+const handleRegistration = (content) => {
+    let username = content.querySelector("#username").value.trim();
+    let email = content.querySelector("#email").value.trim();
+    let password = content.querySelector("#password").value;
+    let passconf = content.querySelector("#passconf").value;
+
+    removeErrorContainer(content);
+    let errorMessages = validateInputs(username, email, password, passconf);
+
+    if (errorMessages.length === 0) {
+        submitRegistration(username, email, password, content);
+    } else {
+        displayErrorMessages(errorMessages, content);
+    }
+}
+
+const removeErrorContainer = (content) => {
+    let errorContainer = content.querySelector("#errorContainer");
+    if (errorContainer) {
+        errorContainer.remove();
+    }
+};
+
+const validateInputs = (username, email, password, passconf) => {
+    let errorMessages = [];
+
+    if (username === "") {
+        errorMessages.push("Username field is required.");
+    } else if (username.length < 4) {
+        errorMessages.push("Username must be greater than 4 characters.");
+    } else if (username.length > 200) {
+        errorMessages.push("Username must be less than 200 characters.");
+    }
+
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (email === "") {
+        errorMessages.push("Email field is required.");
+    } else if (!emailPattern.test(email)) {
+        errorMessages.push("Invalid email address.");
+    }
+
+    if (password === "") {
+        errorMessages.push("Password field is required.");
+    } else if (password.length < 6) {
+        errorMessages.push("Password must be greater than 6 characters.");
+    }   else if (password.length > 200) {
+        errorMessages.push("Password must be less than 200 characters.");
+    }
+
+    if (passconf === "") {
+        errorMessages.push("Password confirmation field is required.");
+    } if (passconf !== password) {
+        errorMessages.push("Password confirmation does not match.");
+    }
+
+    return errorMessages;
+}
+
+const displayErrorMessages = (messages, content) => {
+    let errorDiv = document.createElement("div");
+    errorDiv.setAttribute("id", "errorContainer");
+
+    messages.forEach((message) => {
+        let errorMessage = document.createElement("p");
+        errorMessage.textContent = message;
+        errorDiv.appendChild(errorMessage);
+    });
+
+    content.appendChild(errorDiv);
+}
+
+const submitRegistration = async (username, email, password, content) => {
+    try {
+        const response = await fetch('/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                username,
+                email,
+                password,
+            }),
+        });
         
-        let existingErrorContainer = document.getElementById("errorContainer");
-        if (existingErrorContainer) {
-            existingErrorContainer.remove();
-        }
-        let usernameValue = username.value.trim();
-        let emailValue = email.value.trim();
-        let passwordValue = password.value;
-        let passconfValue = passconf.value;
+        const data = await response.json();
 
-        let errorMessages = [];
-
-        if (usernameValue === "") {
-            errorMessages.push("Username field is required.");
-        } else if (usernameValue.length < 4) {
-            errorMessages.push("Username must be greater than 4 characters.");
-        } else if (usernameValue.length > 200) {
-            errorMessages.push("Username must be less than 200 characters.");
-        }
-
-        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (emailValue === "") {
-            errorMessages.push("Email field is required.");
-        } else if (!emailPattern.test(emailValue)) {
-            errorMessages.push("Invalid email address.");
-        }
-
-        if (passwordValue === "") {
-            errorMessages.push("Password field is required.");
-        } else if (passwordValue.length < 6) {
-            errorMessages.push("Password must be greater than 6 characters.");
-        }   else if (passwordValue.length > 200) {
-            errorMessages.push("Password must be less than 200 characters.");
-        }
-
-        if (passconfValue === "") {
-            errorMessages.push("Password confirmation field is required.");
-        } if (passconfValue !== passwordValue) {
-            errorMessages.push("Password confirmation does not match.");
-        }
-
-        
-        if (errorMessages.length === 0) {
-            try {
-                const response = await fetch('/register', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        username: usernameValue,
-                        email: emailValue,
-                        password: passwordValue,
-                    }),
-                });
-                
-                const data = await response.json();
-    
-                if (!response.ok) {
-                    errorMessages.push(data.error);
-                }
-            } catch (error) {
-                errorMessages.push("Error connecting to server:", error.message);
-            }
-        }
-
-        if (errorMessages.length > 0) {
-                let errorDiv = document.createElement("div");
-                errorDiv.setAttribute("id", "errorContainer");
-    
-                errorMessages.forEach((message) => {
-                    let errorMessage = document.createElement("p");
-                    errorMessage.textContent = message;
-                    errorDiv.appendChild(errorMessage);
-            });
-            content.appendChild(errorDiv);
-        } else {
+        if (response.ok) {
+            createNotification("alert success", data.message);
             document.getElementById("popup-container").remove();
             document.removeEventListener("click", closeEvent);
+        } else {
+            displayErrorMessages([data.error], content);
         }
-    });
-    register.appendChild(confirmButton);
-
-    cotainer.appendChild(register);
-    document.body.appendChild(cotainer);
-
-});
+    } catch (error) {
+        displayErrorMessages(["Error connecting to server:", error.message], content);
+    }
+}
 
 document.querySelector(".login-button").addEventListener("click", () => {
     let cotainer = document.createElement("div");
@@ -186,6 +202,11 @@ document.querySelector(".login-button").addEventListener("click", () => {
     let confirmButton = addElement("button", "button", "confirmbutton");
     confirmButton.textContent = "Login";
     confirmButton.addEventListener("click", async () => {
+        let errorContainer = content.querySelector("#errorContainer");
+        if (errorContainer) {
+            errorContainer.remove();
+        }
+
         let emailValue = email.value.trim();
         let passwordValue = password.value;
 
@@ -239,11 +260,6 @@ document.querySelector(".login-button").addEventListener("click", () => {
                 errorMessage.textContent = message;
                 errorDiv.appendChild(errorMessage);
             });
-
-            let existingErrorContainer = document.getElementById("errorContainer");
-            if (existingErrorContainer) {
-                existingErrorContainer.remove();
-            }
 
             content.appendChild(errorDiv);
         } else {
