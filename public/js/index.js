@@ -1,24 +1,65 @@
 "use strict";
-const closeAfterClickingOutside = (id) => {
-    let isFirstClick  = true;
-    const eventListener = (ev) => {
-        if (isFirstClick) {
-            isFirstClick = false;
-            return;
+
+import { validateRegistration, validateLogin } from './validation.js';
+
+const createAuthButtons = (names) => {
+    let popup = document.createElement("div");
+    popup.setAttribute("id", "auth-buttons");
+    document.querySelector("header").appendChild(popup);
+
+    for (let name of names) {
+        let button = document.createElement("button");
+        popup.appendChild(button);
+        button.setAttribute("id", `${name}-button`);
+
+        button.textContent = name.charAt(0).toUpperCase() + name.slice(1);;
+
+        switch (name) {
+            case "login": 
+                button.addEventListener("click", () => createLoginPopup());
+                break;
+            case "register": 
+                button.addEventListener("click", () => createRegisterPopup());
+                break;
+            case "logout": 
+                button.addEventListener("click", () => logout());
+                break;
+            default:
+                console.error("Invalid button name");
+                break;
         }
-
-        const element = document.getElementById(`${id}`);
-        if (element && !element.contains(ev.target)) {
-            closePopup(eventListener)
-        }
-    };
-
-    document.addEventListener("click", eventListener);
-
-    return eventListener;
+    }
 };
 
-document.querySelector(".register-button").addEventListener("click", () => createRegisterPopup());
+const checkForToken = async () => {
+    const storedToken = localStorage.getItem('token');
+    if (storedToken) {
+        try {
+            const response = await fetch('/verify', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ token: storedToken }),
+            });
+            const result = await response.json();
+
+            if (response.ok) {
+                createAuthButtons(["logout"]);
+            } else {
+                createNotification("alert", result.error);
+                createAuthButtons(["login", "register"]);
+            }
+        } catch (error) {
+            createNotification("alert", error);
+            createAuthButtons(["login", "register"]);
+        }
+    } else {
+        createAuthButtons(["login", "register"]);
+    }
+};
+
+checkForToken();
 
 const createRegisterPopup = () => {
     const closeEvent = closeAfterClickingOutside("register-popup");
@@ -62,18 +103,81 @@ const createRegisterPopup = () => {
 
     let confirmButton = addElement("button", "button", "confirmbutton");
     confirmButton.textContent = "Register";
-    confirmButton.addEventListener("click", () => handleRegistration(content, closeEvent));
+    confirmButton.addEventListener("click", () => registrationHandler(content, closeEvent));
     register.appendChild(confirmButton);
 };
 
-const handleRegistration = (content, closeEvent) => {
+const createLoginPopup = () => {
+    const closeEvent = closeAfterClickingOutside("login-popup");
+
+    let cotainer = document.createElement("div");
+    cotainer.setAttribute("id", "popup-container");
+    document.body.appendChild(cotainer);
+
+    let login = document.createElement("div");
+    login.setAttribute("id", "login-popup");
+    cotainer.appendChild(login);
+
+    let exitButton = addElement("button", "button", "closebutton");
+    exitButton.textContent = "X";
+    exitButton.addEventListener("click", () => closePopup(closeEvent));
+    login.appendChild(exitButton);
+
+    let name = document.createElement("h2");
+    name.textContent = "BRW";
+    login.appendChild(name);
+    
+    let content = document.createElement("div");
+    content.setAttribute("class", "content");
+    login.appendChild(content);
+
+    let email = addElement("input", "text", "email");
+    email.setAttribute("placeholder", "Email address");
+    content.appendChild(email);
+
+    let password = addElement("input", "password");
+    password.setAttribute("placeholder", "Password");
+    content.appendChild(password);
+    
+    let confirmButton = addElement("button", "button", "confirmbutton");
+    confirmButton.textContent = "Login";
+    confirmButton.addEventListener("click", () => loginHandler(content, closeEvent));
+    login.appendChild(confirmButton);
+}
+
+const logout = () => {
+    document.querySelector("#auth-buttons").remove();
+    localStorage.removeItem("token");
+    createAuthButtons(["login", "register"]);
+}
+
+const closeAfterClickingOutside = (id) => {
+    let isFirstClick  = true;
+    const eventListener = (ev) => {
+        if (isFirstClick) {
+            isFirstClick = false;
+            return;
+        }
+
+        const element = document.getElementById(`${id}`);
+        if (element && !element.contains(ev.target)) {
+            closePopup(eventListener)
+        }
+    };
+
+    document.addEventListener("click", eventListener);
+
+    return eventListener;
+};
+
+const registrationHandler = (content, closeEvent) => {
     let username = content.querySelector("#username").value.trim();
     let email = content.querySelector("#email").value.trim();
     let password = content.querySelector("#password").value;
     let passconf = content.querySelector("#passconf").value;
 
     removeErrorContainer(content);
-    let errorMessages = validateRegistrationInputs(username, email, password, passconf);
+    let errorMessages = validateRegistration(username, email, password, passconf);
 
     if (errorMessages.length === 0) {
         submitRegistration(username, email, password, content, closeEvent);
@@ -88,54 +192,6 @@ const removeErrorContainer = (content) => {
         errorContainer.remove();
     }
 };
-
-const validateRegistrationInputs = (username, email, password, passconf) => {
-    let errors = [];
-
-    validateUsername(username, errors);
-    validateEmail(email, errors);
-    validatePassword(password, errors);
-    validatePasswordConfirm(password, passconf, errors);
-
-    return errors;
-}
-
-const validateUsername = (username, errors) => {
-    if (username === "") {
-        errors.push("Username field is required.");
-    } else if (username.length < 4) {
-        errors.push("Username must be greater than 4 characters.");
-    } else if (username.length > 200) {
-        errors.push("Username must be less than 200 characters.");
-    }
-}
-
-const validateEmail = (email, errors) => {
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (email === "") {
-        errors.push("Email field is required.");
-    } else if (!emailPattern.test(email)) {
-        errors.push("Invalid email address.");
-    }
-}
-
-const validatePassword = (password, errors) => {
-    if (password === "") {
-        errors.push("Password field is required.");
-    } else if (password.length < 6) {
-        errors.push("Password must be greater than 6 characters.");
-    }   else if (password.length > 200) {
-        errors.push("Password must be less than 200 characters.");
-    }
-}
-
-const validatePasswordConfirm = (password, passconf, errors) => {
-    if (passconf === "") {
-        errors.push("Password confirmation field is required.");
-    } if (passconf !== password) {
-        errors.push("Password confirmation does not match.");
-    }
-}
 
 const displayErrors = (messages, content) => {
     let errorDiv = document.createElement("div");
@@ -177,52 +233,12 @@ const submitRegistration = async (username, email, password, content, closeEvent
     }
 }
 
-document.querySelector(".login-button").addEventListener("click", () => createLoginPopup());
-
-const createLoginPopup = () => {
-    const closeEvent = closeAfterClickingOutside("login-popup");
-
-    let cotainer = document.createElement("div");
-    cotainer.setAttribute("id", "popup-container");
-    document.body.appendChild(cotainer);
-
-    let login = document.createElement("div");
-    login.setAttribute("id", "login-popup");
-    cotainer.appendChild(login);
-
-    let exitButton = addElement("button", "button", "closebutton");
-    exitButton.textContent = "X";
-    exitButton.addEventListener("click", () => closePopup(closeEvent));
-    login.appendChild(exitButton);
-
-    let name = document.createElement("h2");
-    name.textContent = "BRW";
-    login.appendChild(name);
-    
-    let content = document.createElement("div");
-    content.setAttribute("class", "content");
-    login.appendChild(content);
-
-    let email = addElement("input", "text", "email");
-    email.setAttribute("placeholder", "Email address");
-    content.appendChild(email);
-
-    let password = addElement("input", "password");
-    password.setAttribute("placeholder", "Password");
-    content.appendChild(password);
-    
-    let confirmButton = addElement("button", "button", "confirmbutton");
-    confirmButton.textContent = "Login";
-    confirmButton.addEventListener("click", () => handleLogin(content, closeEvent));
-    login.appendChild(confirmButton);
-}
-
-const handleLogin = (content, closeEvent) => {
+const loginHandler = (content, closeEvent) => {
     let email = content.querySelector("#email").value.trim();
     let password = content.querySelector("#password").value;
 
     removeErrorContainer(content);
-    let errors = validateLoginInputs(email, password);
+    let errors = validateLogin(email, password);
 
     if (errors.length === 0) {
         submitLogin(email, password, content, closeEvent);
@@ -231,14 +247,6 @@ const handleLogin = (content, closeEvent) => {
     }
 }
 
-const validateLoginInputs = (email, password) => {
-    let errors = [];
-
-    validateEmail(email, errors);
-    validatePassword(password, errors);
-
-    return errors;
-}
 
 const submitLogin = async (email, password, content, closeEvent) => {
     try {
@@ -259,6 +267,7 @@ const submitLogin = async (email, password, content, closeEvent) => {
             localStorage.setItem('token', data.token);
             createNotification("alert success", data.message);
             closePopup(closeEvent);
+            document.querySelector("#auth-buttons").remove();
             checkForToken();
         } else {
             displayErrors([data.error], content);
@@ -279,33 +288,6 @@ const addElement = (element, type, name = type) => {
     elem.setAttribute("id", `${name}`);
     return elem;
 };
-
-
-const checkForToken = async () => {
-    const storedToken = localStorage.getItem('token');
-    if (storedToken) {
-        try {
-            const response = await fetch('/verify', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ token: storedToken }),
-            });
-            const result = await response.json();
-
-            if (!response.ok) {
-                createNotification("alert", result.error);
-                console.error('Token verification failed:', result.error);
-            }
-        } catch (error) {
-            createNotification("alert", error);
-            console.error('Error verifying token:', error);
-        }
-    }
-};
-
-checkForToken();
 
 const createNotification = (className, text) => {
     let notification = document.getElementById("notification");

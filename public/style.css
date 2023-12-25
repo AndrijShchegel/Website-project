@@ -27,26 +27,47 @@ footer {
     width: 100%;
 }
 
-.login-button {
+#auth-buttons {
     position: absolute;
-    top: 10px;
-    right: 10px;
-    background-color: #333;
-    color: #fff;
-    border: none;
+    top: 60px;
+    right: 30px;
+    width: 180px;
+    background-color: #2A2E37;
     padding: 10px;
-    cursor: pointer;
+    box-shadow: 2px 2px 5px 5px rgba(0, 0, 0, 0.15);
+    border-radius: 10px;
 }
 
-.register-button {
-    position: absolute;
-    top: 10px;
-    right: 70px;
+#login-button,
+#register-button,
+#logout-button  {
+    margin: 2px;
+    width: calc(50% - 4px);
     background-color: #333;
-    color: #fff;
-    border: none;
+    color: #793ef9;
+    border-color: #793ef9;
+    border-style: solid;
+    border-width: 1px;
     padding: 10px;
+    align-items: stretch;
     cursor: pointer;
+    border-radius: 5px;
+    transition: all 0.2s linear;
+}
+
+
+#logout-button {
+    width: 100%;
+    margin: 0px;
+}
+
+#login-button:hover,
+#register-button:hover,
+#logout-button:hover {
+    color: white;
+    background: #793ef9;
+    border-color: white;
+    transition: all 0.2s linear;
 }
 
 #popup-container {
