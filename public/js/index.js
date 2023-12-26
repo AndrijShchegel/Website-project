@@ -3,7 +3,7 @@ import { validateRegistration, validateLogin } from "./validation.js";
 
 
 const closePopup = closeEvent => {
-  document.getElementById("popup-container").remove();
+  document.querySelector(".popup").remove();
   document.removeEventListener("click", closeEvent);
 };
 
@@ -62,7 +62,7 @@ const closeAfterClickingOutside = id => {
       return;
     }
 
-    const element = document.getElementById(`${id}`);
+    const element = document.querySelector(`#${id}`);
     if (element && !element.contains(ev.target)) {
       closePopup(eventListener);
     }
@@ -122,8 +122,7 @@ const submitLogin = async (email, password, content, closeEvent) => {
 
       closePopup(closeEvent);
 
-      document.querySelector("#auth-buttons").remove();
-      createAuthButtons(["logout"]);
+      document.querySelector("#auth-popup").remove();
     } else {
       displayErrors([data.error], content);
     }
@@ -162,11 +161,13 @@ const loginHandler = (content, closeEvent) => {
   }
 };
 
-const createRegisterPopup = () => {
+const createRegisterPopup = event => {
+  closePopup(event);
   const closeEvent = closeAfterClickingOutside("register-popup");
 
   const cotainer = document.createElement("div");
   cotainer.setAttribute("id", "popup-container");
+  cotainer.setAttribute("class", "popup");
   document.body.appendChild(cotainer);
 
   const register = document.createElement("div");
@@ -208,11 +209,13 @@ const createRegisterPopup = () => {
   register.appendChild(confirmButton);
 };
 
-const createLoginPopup = () => {
+const createLoginPopup = event => {
+  closePopup(event);
   const closeEvent = closeAfterClickingOutside("login-popup");
 
   const cotainer = document.createElement("div");
   cotainer.setAttribute("id", "popup-container");
+  cotainer.setAttribute("class", "popup");
   document.body.appendChild(cotainer);
 
   const login = document.createElement("div");
@@ -246,16 +249,17 @@ const createLoginPopup = () => {
   login.appendChild(confirmButton);
 };
 
-const logout = () => {
-  document.querySelector("#auth-buttons").remove();
+const logout = event => {
+  closePopup(event);
   localStorage.removeItem("token");
-  createAuthButtons(["login", "register"]);
 };
 
 const createAuthButtons = names => {
   const popup = document.createElement("div");
-  popup.setAttribute("id", "auth-buttons");
+  popup.setAttribute("id", "auth-popup");
+  popup.setAttribute("class", "popup");
   document.querySelector("header").appendChild(popup);
+  const closeEvent = closeAfterClickingOutside("auth-popup");
 
   for (const name of names) {
     const button = document.createElement("button");
@@ -266,13 +270,13 @@ const createAuthButtons = names => {
 
     switch (name) {
     case "login":
-      button.addEventListener("click", () => createLoginPopup());
+      button.addEventListener("click", () => createLoginPopup(closeEvent));
       break;
     case "register":
-      button.addEventListener("click", () => createRegisterPopup());
+      button.addEventListener("click", () => createRegisterPopup(closeEvent));
       break;
     case "logout":
-      button.addEventListener("click", () => logout());
+      button.addEventListener("click", () => logout(closeEvent));
       break;
     default:
       console.error("Invalid button name");
@@ -295,18 +299,27 @@ const checkForToken = async () => {
       const result = await response.json();
 
       if (response.ok) {
-        createAuthButtons(["logout"]);
+        return true;
       } else {
         createNotification("alert", result.error);
-        createAuthButtons(["login", "register"]);
+        return false;
       }
     } catch (error) {
       createNotification("alert", error);
-      createAuthButtons(["login", "register"]);
+      return false;
     }
   } else {
-    createAuthButtons(["login", "register"]);
+    return false;
   }
 };
 
 checkForToken();
+
+const settings = async () => {
+  if (await checkForToken()) {
+    createAuthButtons(["logout"]);
+  } else {
+    createAuthButtons(["login", "register"]);
+  }
+};
+document.querySelector("#settings").addEventListener("click", settings);
