@@ -84,6 +84,24 @@ app.post("/verify", (req, res) => {
   });
 });
 
+app.post("/access", async (req, res) => {
+  const { email } = req.body;
+  const client = await pool.connect();
+  const selectAdmin  = "SELECT * FROM admins WHERE email = $1";
+  let accessList = [];
+  try {
+    const results = await client.query(selectAdmin , [email]);
+    if (results.rows.length > 0) {
+      accessList.push("/admin");
+    }
+    res.status(200).json({ accessList });
+  } catch (error) {
+    res.status(500).json({ error: "Internal Server Error" });
+  } finally {
+    client.release();
+  }
+});
+
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });

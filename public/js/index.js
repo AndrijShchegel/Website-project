@@ -7,13 +7,6 @@ const closePopup = closeEvent => {
   document.removeEventListener("click", closeEvent);
 };
 
-const addElement = (element, type, name = type) => {
-  const elem = document.createElement(`${element}`);
-  elem.setAttribute("type", `${type}`);
-  elem.setAttribute("id", `${name}`);
-  return elem;
-};
-
 const displayErrors = (messages, content) => {
   const errorDiv = document.createElement("div");
   errorDiv.setAttribute("id", "errorContainer");
@@ -121,7 +114,9 @@ const submitLogin = async (email, password, content, closeEvent) => {
       createNotification("alert success", data.message);
 
       closePopup(closeEvent);
-
+      
+      await createMenu();
+      
       document.querySelector("#auth-popup").remove();
     } else {
       displayErrors([data.error], content);
@@ -161,6 +156,14 @@ const loginHandler = (content, closeEvent) => {
   }
 };
 
+const createInput = (type, id, placeholder) => {
+  const input = document.createElement("input");
+  input.setAttribute("type", type);
+  input.setAttribute("id", id);
+  input.setAttribute("placeholder", placeholder);
+  return input;
+};
+
 const createRegisterPopup = event => {
   closePopup(event);
   const closeEvent = closeAfterClickingOutside("register-popup");
@@ -174,7 +177,8 @@ const createRegisterPopup = event => {
   register.setAttribute("id", "register-popup");
   cotainer.appendChild(register);
 
-  const exitButton = addElement("button", "button", "closebutton");
+  const exitButton = document.createElement("button");
+  exitButton.setAttribute("id", "closebutton");
   exitButton.textContent = "X";
   exitButton.addEventListener("click", () => closePopup(closeEvent));
   register.appendChild(exitButton);
@@ -187,23 +191,19 @@ const createRegisterPopup = event => {
   content.setAttribute("class", "content");
   register.appendChild(content);
 
-  const username = addElement("input", "text", "username");
-  username.setAttribute("placeholder", "Username");
+  const username = createInput("text", "username", "Username");
+  const email = createInput("text", "email", "Email address");
+  const password = createInput("password", "password", "Password");
+  const passconf = createInput("password", "passconf", "Confirm password");
+  
   content.appendChild(username);
-
-  const email = addElement("input", "text", "email");
-  email.setAttribute("placeholder", "Email address");
   content.appendChild(email);
-
-  const password = addElement("input", "password");
-  password.setAttribute("placeholder", "Password");
   content.appendChild(password);
-
-  const passconf = addElement("input", "password", "passconf");
-  passconf.setAttribute("placeholder", "Confirm password");
   content.appendChild(passconf);
-
-  const confirmButton = addElement("button", "button", "confirmbutton");
+ 
+  const confirmButton = document.createElement("button");
+  confirmButton.setAttribute("id", "confirmbutton");
+  confirmButton.setAttribute("type", "submit");
   confirmButton.textContent = "Register";
   confirmButton.addEventListener("click", () => registrationHandler(content, closeEvent));
   register.appendChild(confirmButton);
@@ -222,7 +222,8 @@ const createLoginPopup = event => {
   login.setAttribute("id", "login-popup");
   cotainer.appendChild(login);
 
-  const exitButton = addElement("button", "button", "closebutton");
+  const exitButton = document.createElement("button");
+  exitButton.setAttribute("id", "closebutton");
   exitButton.textContent = "X";
   exitButton.addEventListener("click", () => closePopup(closeEvent));
   login.appendChild(exitButton);
@@ -235,15 +236,15 @@ const createLoginPopup = event => {
   content.setAttribute("class", "content");
   login.appendChild(content);
 
-  const email = addElement("input", "text", "email");
-  email.setAttribute("placeholder", "Email address");
+  const email = createInput("text", "email", "Email address");
+  const password = createInput("password", "password", "Password");
+  
   content.appendChild(email);
-
-  const password = addElement("input", "password");
-  password.setAttribute("placeholder", "Password");
   content.appendChild(password);
 
-  const confirmButton = addElement("button", "button", "confirmbutton");
+  const confirmButton = document.createElement("button");
+  confirmButton.setAttribute("id", "confirmbutton");
+  confirmButton.setAttribute("type", "submit");
   confirmButton.textContent = "Login";
   confirmButton.addEventListener("click", () => loginHandler(content, closeEvent));
   login.appendChild(confirmButton);
@@ -252,6 +253,7 @@ const createLoginPopup = event => {
 const logout = event => {
   closePopup(event);
   localStorage.removeItem("token");
+  deleteMenu();
 };
 
 const createAuthButtons = names => {
@@ -297,7 +299,9 @@ const checkToken = async () => {
     });
     const result = await response.json();
 
-    if (!response.ok) {
+    if (response.ok) {
+      return result.email;
+    } else {
       createNotification("alert", result.error);
       localStorage.removeItem("token");
     }
@@ -320,3 +324,49 @@ const settings = () => {
 document.querySelector("#settings").addEventListener("click", () => {
   settings();
 });
+
+const createLinks = (listOfLinks) => {
+  const list = document.querySelector("#list");
+  for (const link of listOfLinks) {
+    let listElem = document.createElement("li");
+    listElem.setAttribute("class", "login-related");
+    list.appendChild(listElem);
+
+    let linkElem = document.createElement("a");
+    linkElem.setAttribute("href", link);
+    linkElem.textContent = link;
+    listElem.appendChild(linkElem);
+  }
+}
+
+const createMenu = async() => {
+  if (localStorage.getItem("token")) {
+    let email =  await checkToken();
+    try {
+      const response = await fetch("/access", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: email }),
+      });
+      const result = await response.json();
+  
+      if (response.ok) {
+        createLinks(result.accessList);
+      }
+    } catch (error) {
+      createNotification("alert", error);
+    } 
+  }
+};
+
+createMenu();
+
+const deleteMenu = () => {
+  const menu = document.getElementById("list");
+  let list = menu.getElementsByClassName("login-related");
+  for (const elem of list) {
+    elem.remove()
+  }
+};
