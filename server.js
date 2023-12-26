@@ -2,6 +2,7 @@ const express = require("express");
 const { Pool } = require("pg");
 const path = require("path");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 
 const app = express();
 const port = 3000;
@@ -32,7 +33,9 @@ app.post("/register", async (req, res) => {
       res.status(400).json({ error: "Email already registered" });
     } else {
 
-      await client.query(insert, [username, email, password]);
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      await client.query(insert, [username, email, hashedPassword]);
 
       res.status(200).json({ message: "Registration successful!" });
     }
@@ -46,14 +49,22 @@ app.post("/register", async (req, res) => {
 app.post("/login", async (req, res) => {
   const { email, password } = req.body;
   const client = await pool.connect();
-  const select = "SELECT * FROM users WHERE email = $1 AND password = $2";
+  const select = "SELECT * FROM users WHERE email = $1";
   try {
-    const results = await client.query(select, [email, password]);
+    const results = await client.query(select, [email]);
     if (results.rows.length === 0) {
       res.status(400).json({ error: "Invalid email or password" });
     } else {
-      const token = jwt.sign({ email }, "secret-1998", { expiresIn: "1d" });
-      res.status(200).json({ message: "Login successful!", token });
+      const user = results.rows[0];
+
+      const passwordMatch = await bcrypt.compare(password, user.password);
+
+      if (passwordMatch) {
+        const token = jwt.sign({ email }, "secret-1998", { expiresIn: "1d" });
+        res.status(200).json({ message: "Login successful!", token });
+      } else {
+        res.status(400).json({ error: "Invalid email or password" });
+      }
     }
   } catch (error) {
     res.status(500).json({ error: "Internal Server Error" });
