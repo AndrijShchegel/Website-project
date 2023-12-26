@@ -55,7 +55,7 @@ const createNotification = (className, text) => {
 };
 
 const closeAfterClickingOutside = id => {
-  let isFirstClick  = true;
+  let isFirstClick = true;
   const eventListener = ev => {
     if (isFirstClick) {
       isFirstClick = false;
@@ -285,41 +285,38 @@ const createAuthButtons = names => {
   }
 };
 
-const checkForToken = async () => {
+const checkToken = async () => {
   const storedToken = localStorage.getItem("token");
-  if (storedToken) {
-    try {
-      const response = await fetch("/verify", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ token: storedToken }),
-      });
-      const result = await response.json();
+  try {
+    const response = await fetch("/verify", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ token: storedToken }),
+    });
+    const result = await response.json();
 
-      if (response.ok) {
-        return true;
-      } else {
-        createNotification("alert", result.error);
-        return false;
-      }
-    } catch (error) {
-      createNotification("alert", error);
-      return false;
+    if (!response.ok) {
+      createNotification("alert", result.error);
+      localStorage.removeItem("token");
     }
-  } else {
-    return false;
+  } catch (error) {
+    createNotification("alert", error);
   }
 };
 
-checkForToken();
+if (localStorage.getItem("token")) checkToken();
 
-const settings = async () => {
-  if (await checkForToken()) {
+const settings = () => {
+  const storedToken = localStorage.getItem("token");
+  if (storedToken) {
     createAuthButtons(["logout"]);
   } else {
     createAuthButtons(["login", "register"]);
   }
 };
-document.querySelector("#settings").addEventListener("click", settings);
+
+document.querySelector("#settings").addEventListener("click", () => {
+  settings();
+});

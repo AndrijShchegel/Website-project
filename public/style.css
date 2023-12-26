@@ -188,6 +188,7 @@ footer {
 
 #notification .alert {
         padding: 10px;
+        margin: 2px;
         background-color: #f44336;
         color: white;
         cursor: pointer;
