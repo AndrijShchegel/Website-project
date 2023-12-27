@@ -1,4 +1,3 @@
-
 const validateUsername = (username, errors) => {
   if (username === "") {
     errors.push("Username field is required.");

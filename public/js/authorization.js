@@ -1,50 +1,10 @@
-
 import { validateRegistration, validateLogin } from "./validation.js";
-
+import { createNotification } from "./notification.js";
+import { displayErrors, removeErrorContainer } from "./errorContainer.js";
 
 const closePopup = closeEvent => {
   document.querySelector(".popup").remove();
   document.removeEventListener("click", closeEvent);
-};
-
-const displayErrors = (messages, content) => {
-  const errorDiv = document.createElement("div");
-  errorDiv.setAttribute("id", "errorContainer");
-
-  messages.forEach(message => {
-    const errorMessage = document.createElement("p");
-    errorMessage.textContent = message;
-    errorDiv.appendChild(errorMessage);
-  });
-
-  content.appendChild(errorDiv);
-};
-
-const removeErrorContainer = content => {
-  const errorContainer = content.querySelector("#errorContainer");
-  if (errorContainer) {
-    errorContainer.remove();
-  }
-};
-
-const createNotification = (className, text) => {
-  let notification = document.getElementById("notification");
-
-  if (!notification) {
-    notification = document.createElement("div");
-    notification.setAttribute("id", "notification");
-    document.body.appendChild(notification);
-  }
-  const alert = document.createElement("div");
-  alert.setAttribute("class", `${className}`);
-  alert.textContent = text;
-  alert.addEventListener("click", () => {
-    alert.remove();
-    if (notification.childElementCount === 0) {
-      notification.remove();
-    }
-  });
-  notification.appendChild(alert);
 };
 
 const closeAfterClickingOutside = id => {
@@ -114,9 +74,9 @@ const submitLogin = async (email, password, content, closeEvent) => {
       createNotification("alert success", data.message);
 
       closePopup(closeEvent);
-      
-      await createMenu();
-      
+
+      window.location.reload();
+
       document.querySelector("#auth-popup").remove();
     } else {
       displayErrors([data.error], content);
@@ -195,12 +155,12 @@ const createRegisterPopup = event => {
   const email = createInput("text", "email", "Email address");
   const password = createInput("password", "password", "Password");
   const passconf = createInput("password", "passconf", "Confirm password");
-  
+
   content.appendChild(username);
   content.appendChild(email);
   content.appendChild(password);
   content.appendChild(passconf);
- 
+
   const confirmButton = document.createElement("button");
   confirmButton.setAttribute("id", "confirmbutton");
   confirmButton.setAttribute("type", "submit");
@@ -238,7 +198,7 @@ const createLoginPopup = event => {
 
   const email = createInput("text", "email", "Email address");
   const password = createInput("password", "password", "Password");
-  
+
   content.appendChild(email);
   content.appendChild(password);
 
@@ -253,7 +213,7 @@ const createLoginPopup = event => {
 const logout = event => {
   closePopup(event);
   localStorage.removeItem("token");
-  deleteMenu();
+  window.location.assign("/");
 };
 
 const createAuthButtons = names => {
@@ -287,86 +247,23 @@ const createAuthButtons = names => {
   }
 };
 
-const checkToken = async () => {
-  const storedToken = localStorage.getItem("token");
-  try {
-    const response = await fetch("/verify", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ token: storedToken }),
-    });
-    const result = await response.json();
-
-    if (response.ok) {
-      return result.email;
-    } else {
-      createNotification("alert", result.error);
-      localStorage.removeItem("token");
-    }
-  } catch (error) {
-    createNotification("alert", error);
-  }
-};
-
-if (localStorage.getItem("token")) checkToken();
-
 const settings = () => {
-  const storedToken = localStorage.getItem("token");
-  if (storedToken) {
+  const token = localStorage.getItem("token");
+  if (token) {
     createAuthButtons(["logout"]);
   } else {
     createAuthButtons(["login", "register"]);
   }
 };
 
-document.querySelector("#settings").addEventListener("click", () => {
-  settings();
-});
+export const createSettingsButton = () => {
+  const button = document.createElement("button");
+  button.setAttribute("id", "settings");
+  document.querySelector("header").appendChild(button);
+  button.addEventListener("click", () => { settings(); });
 
-const createLinks = (listOfLinks) => {
-  const list = document.querySelector("#list");
-  for (const link of listOfLinks) {
-    let listElem = document.createElement("li");
-    listElem.setAttribute("class", "login-related");
-    list.appendChild(listElem);
-
-    let linkElem = document.createElement("a");
-    linkElem.setAttribute("href", link);
-    linkElem.textContent = link;
-    listElem.appendChild(linkElem);
-  }
-}
-
-const createMenu = async() => {
-  if (localStorage.getItem("token")) {
-    let email =  await checkToken();
-    try {
-      const response = await fetch("/access", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email: email }),
-      });
-      const result = await response.json();
-  
-      if (response.ok) {
-        createLinks(result.accessList);
-      }
-    } catch (error) {
-      createNotification("alert", error);
-    } 
-  }
-};
-
-createMenu();
-
-const deleteMenu = () => {
-  const menu = document.getElementById("list");
-  let list = menu.getElementsByClassName("login-related");
-  for (const elem of list) {
-    elem.remove()
-  }
+  const image = document.createElement("img");
+  image.setAttribute("src", "images/gear.jpg");
+  image.setAttribute("alt", "Settings");
+  button.appendChild(image);
 };
