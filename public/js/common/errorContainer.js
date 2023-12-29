@@ -1,6 +1,6 @@
 export const displayErrors = (messages, content) => {
   const errorDiv = document.createElement("div");
-  errorDiv.setAttribute("id", "errorContainer");
+  errorDiv.id = "errorContainer";
   content.appendChild(errorDiv);
 
   for (const message of messages) {

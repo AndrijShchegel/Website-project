@@ -1,6 +1,6 @@
-import { validateRegistration, validateLogin } from "./validation.js";
-import { createNotification } from "./notification.js";
-import { displayErrors, removeErrorContainer } from "./errorContainer.js";
+import { validateRegistration, validateLogin } from "./authValidation.js";
+import { createNotification } from "../common/notification.js";
+import { displayErrors, removeErrorContainer } from "../common/errorContainer.js";
 
 const closePopup = closeEvent => {
   document.querySelector(".popup").remove();
@@ -118,9 +118,9 @@ const loginHandler = (content, closeEvent) => {
 
 const createInput = (type, id, placeholder) => {
   const input = document.createElement("input");
-  input.setAttribute("type", type);
-  input.setAttribute("id", id);
-  input.setAttribute("placeholder", placeholder);
+  input.type = type;
+  input.id = id;
+  input.placeholder = placeholder;
   return input;
 };
 
@@ -129,16 +129,16 @@ const createRegisterPopup = event => {
   const closeEvent = closeAfterClickingOutside("register-popup");
 
   const cotainer = document.createElement("div");
-  cotainer.setAttribute("id", "popup-container");
-  cotainer.setAttribute("class", "popup");
+  cotainer.id = "popup-container";
+  cotainer.className = "popup";
   document.body.appendChild(cotainer);
 
   const register = document.createElement("div");
-  register.setAttribute("id", "register-popup");
+  register.id = "register-popup";
   cotainer.appendChild(register);
 
   const exitButton = document.createElement("button");
-  exitButton.setAttribute("id", "closebutton");
+  exitButton.id = "closebutton";
   exitButton.textContent = "X";
   exitButton.addEventListener("click", () => closePopup(closeEvent));
   register.appendChild(exitButton);
@@ -148,7 +148,7 @@ const createRegisterPopup = event => {
   register.appendChild(name);
 
   const content = document.createElement("div");
-  content.setAttribute("class", "content");
+  content.className = "content";
   register.appendChild(content);
 
   const username = createInput("text", "username", "Username");
@@ -162,8 +162,8 @@ const createRegisterPopup = event => {
   content.appendChild(passconf);
 
   const confirmButton = document.createElement("button");
-  confirmButton.setAttribute("id", "confirmbutton");
-  confirmButton.setAttribute("type", "submit");
+  confirmButton.id = "confirmbutton";
+  confirmButton.type = "submit";
   confirmButton.textContent = "Register";
   confirmButton.addEventListener("click", () => registrationHandler(content, closeEvent));
   register.appendChild(confirmButton);
@@ -174,16 +174,16 @@ const createLoginPopup = event => {
   const closeEvent = closeAfterClickingOutside("login-popup");
 
   const cotainer = document.createElement("div");
-  cotainer.setAttribute("id", "popup-container");
-  cotainer.setAttribute("class", "popup");
+  cotainer.id = "popup-container";
+  cotainer.className = "popup";
   document.body.appendChild(cotainer);
 
   const login = document.createElement("div");
-  login.setAttribute("id", "login-popup");
+  login.id = "login-popup";
   cotainer.appendChild(login);
 
   const exitButton = document.createElement("button");
-  exitButton.setAttribute("id", "closebutton");
+  exitButton.id = "closebutton";
   exitButton.textContent = "X";
   exitButton.addEventListener("click", () => closePopup(closeEvent));
   login.appendChild(exitButton);
@@ -193,7 +193,7 @@ const createLoginPopup = event => {
   login.appendChild(name);
 
   const content = document.createElement("div");
-  content.setAttribute("class", "content");
+  content.className = "content";
   login.appendChild(content);
 
   const email = createInput("text", "email", "Email address");
@@ -203,8 +203,8 @@ const createLoginPopup = event => {
   content.appendChild(password);
 
   const confirmButton = document.createElement("button");
-  confirmButton.setAttribute("id", "confirmbutton");
-  confirmButton.setAttribute("type", "submit");
+  confirmButton.id = "confirmbutton";
+  confirmButton.type = "submit";
   confirmButton.textContent = "Login";
   confirmButton.addEventListener("click", () => loginHandler(content, closeEvent));
   login.appendChild(confirmButton);
@@ -213,20 +213,20 @@ const createLoginPopup = event => {
 const logout = event => {
   closePopup(event);
   localStorage.removeItem("token");
-  window.location.assign("/");
+  window.location.reload();
 };
 
 const createAuthButtons = names => {
   const popup = document.createElement("div");
-  popup.setAttribute("id", "auth-popup");
-  popup.setAttribute("class", "popup");
+  popup.id = "auth-popup";
+  popup.className = "popup";
   document.querySelector("header").appendChild(popup);
   const closeEvent = closeAfterClickingOutside("auth-popup");
 
   for (const name of names) {
     const button = document.createElement("button");
     popup.appendChild(button);
-    button.setAttribute("id", `${name}-button`);
+    button.id = `${name}-button`;
 
     button.textContent = name.charAt(0).toUpperCase() + name.slice(1);
 
@@ -258,12 +258,12 @@ const settings = () => {
 
 export const createSettingsButton = () => {
   const button = document.createElement("button");
-  button.setAttribute("id", "settings");
+  button.id = "settings";
   document.querySelector("header").appendChild(button);
   button.addEventListener("click", () => { settings(); });
 
   const image = document.createElement("img");
-  image.setAttribute("src", "images/gear.jpg");
-  image.setAttribute("alt", "Settings");
+  image.src = "images/gear.jpg";
+  image.alt = "Settings";
   button.appendChild(image);
 };

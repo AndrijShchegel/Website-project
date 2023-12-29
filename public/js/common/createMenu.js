@@ -4,11 +4,11 @@ const createLinks = listOfLinks => {
   const list = document.querySelector("#list");
   for (const link of listOfLinks) {
     const listElem = document.createElement("li");
-    listElem.setAttribute("class", "login-related");
+    listElem.className = "login-related";
     list.appendChild(listElem);
 
     const linkElem = document.createElement("a");
-    linkElem.setAttribute("href", link);
+    linkElem.href = link;
     linkElem.textContent = link;
     listElem.appendChild(linkElem);
   }

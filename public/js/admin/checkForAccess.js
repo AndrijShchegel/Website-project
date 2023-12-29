@@ -1,4 +1,4 @@
-import { createNotification } from "./notification.js";
+import { createNotification } from "../common/notification.js";
 
 export const checkForAccess = async () => {
   const token = localStorage.getItem("token");

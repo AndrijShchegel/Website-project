@@ -1,0 +1,89 @@
+#container {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 25px;
+}
+
+#container .book {
+    background-color: #2A2E37;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    padding: 10px;
+    position: relative;
+    height: 80px;
+    width: 100%;
+}
+
+.book .intro {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.intro .content {
+    width: 75%;
+}
+
+.intro .genres {
+    display: flex;
+    width: 25%;
+}
+
+.genres .genres {
+    margin-top: 5px;
+}
+
+span.genre {
+    background-color: #343944;
+    border-radius: .3rem;
+    color: rgba(255, 255, 255, 0.7);
+    display: inline-block;
+    font-size: 15px;
+    margin-left: 5px;
+    margin-right: 5px;
+    padding: 5px;
+}
+
+#container .pages {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+#container .pages button {
+    background: inherit;
+    margin-left: 5px;
+    margin-right: 5px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+h3.title {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 15px;
+    line-height: 1.2;
+    margin: 0;
+}
+.title.srinked {
+    max-height: 40px;
+    overflow: hidden;
+}
+
+.title p {
+    margin: 0;
+    padding: 0;
+}
+
+.subtitle {
+    font-size: 15px;
+    margin-top: 10px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.subtitle p {
+    margin: 0;
+    padding: 0;
+}
+
+.subtitle.srinked {
+    max-height: 60px;
+    overflow: hidden;
+}

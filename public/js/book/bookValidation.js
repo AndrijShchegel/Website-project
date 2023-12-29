@@ -24,12 +24,19 @@ const validateDescription = (description, errors) => {
   }
 };
 
-export const validateBookCreation = (bookName, uniqueBookName, description) => {
+const validateGenres = (genres, errors) => {
+  if (genres.length === 0) {
+    errors.push("Select at least one genre");
+  }
+};
+
+export const validateBookCreation = (name, uniqueName, description, genres) => {
   const errors = [];
 
-  validateBookName(bookName, errors);
-  validateUniqueBookName(uniqueBookName, errors);
+  validateBookName(name, errors);
+  validateUniqueBookName(uniqueName, errors);
   validateDescription(description, errors);
+  validateGenres(genres, errors);
 
   return errors;
 };

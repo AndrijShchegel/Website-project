@@ -3,11 +3,11 @@ export const createNotification = (className, text) => {
 
   if (!notification) {
     notification = document.createElement("div");
-    notification.setAttribute("id", "notification");
+    notification.id = "notification";
     document.body.appendChild(notification);
   }
   const alert = document.createElement("div");
-  alert.setAttribute("class", `${className}`);
+  alert.className = `${className}`;
   alert.textContent = text;
   alert.addEventListener("click", () => {
     alert.remove();
