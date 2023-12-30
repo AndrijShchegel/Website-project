@@ -187,6 +187,54 @@ app.post("/create-book", async (req, res) => {
   }
 });
 
+app.post("/delete-book", async (req, res) => {
+  const { bookName } = req.body;
+  const deleteBook = "DELETE FROM bookInformation WHERE uniqueName = $1";
+
+  let client;
+
+  try {
+    client = await pool.connect();
+
+    const results = await client.query(deleteBook, [bookName]);
+
+    res.status(200).json({ message: "Book was deleted!" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  } finally {
+    if (client) {
+      client.release();
+    }
+  }
+});
+
+app.post("/update-book", async (req, res) => {
+  const { bookName, description } = req.body;
+  const select = "SELECT * FROM bookInformation WHERE uniqueName = $1";
+  const update = "UPDATE bookInformation SET description = $2 WHERE uniqueName = $1";
+
+  let client;
+
+  try {
+    client = await pool.connect();
+
+    const results = await client.query(select, [bookName]);
+    if (results.rows.length === 0) {
+      res.status(400).json({ error: "There is no book with this name" });
+    } else {
+      await client.query(update, [bookName, description]);
+
+      res.status(200).json({ message: "Book was updated!" });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  } finally {
+    if (client) { client.release(); }
+  }
+});
+
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });

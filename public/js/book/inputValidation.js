@@ -30,13 +30,30 @@ const validateGenres = (genres, errors) => {
   }
 };
 
-export const validateBookCreation = (name, uniqueName, description, genres) => {
+export const validateCreateInputs = (name, uniqueName, description, genres) => {
   const errors = [];
 
   validateBookName(name, errors);
   validateUniqueBookName(uniqueName, errors);
   validateDescription(description, errors);
   validateGenres(genres, errors);
+
+  return errors;
+};
+
+export const validateDeleteInputs = (uniqueName) => {
+  const errors = [];
+
+  validateUniqueBookName(uniqueName, errors);
+
+  return errors;
+};
+
+export const validateUpdateInputs = (uniqueName, description) => {
+  const errors = [];
+
+  validateUniqueBookName(uniqueName, errors);
+  validateDescription(description, errors);
 
   return errors;
 };

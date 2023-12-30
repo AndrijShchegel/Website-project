@@ -1,6 +1,7 @@
-import { validateBookCreation } from "./bookValidation.js";
+import { validateCreateInputs } from "./inputValidation.js";
 import { removeErrorContainer, displayErrors } from "../common/errorContainer.js";
 import { createNotification } from "../common/notification.js";
+import { createInput } from "./createInput.js";
 
 const submitBookCreation = async (bookName, uniqueName, description, genres, content) => {
   try {
@@ -58,43 +59,14 @@ const createBookHandler = content => {
   const formattedBookName = formatBookName(bookName);
 
   removeErrorContainer(content);
-  const errors = validateBookCreation(bookName, formattedBookName, description, selectedGenres);
+
+  const errors = validateCreateInputs(bookName, formattedBookName, description, selectedGenres);
+  
   if (errors.length === 0) {
     submitBookCreation(bookName, formattedBookName, description, selectedGenres, content);
   } else {
     displayErrors(errors, content);
   }
-};
-
-const createInput = (type, id, label) => {
-  const container = document.createElement("div");
-  container.className = "input-container";
-
-  if (type === "textarea") {
-    const textarea = document.createElement("textarea");
-    textarea.id = id;
-    textarea.placeholder = label;
-    container.appendChild(textarea);
-  } else if (type === "checkbox") {
-    const checkbox = document.createElement("input");
-    checkbox.type = "checkbox";
-    checkbox.id = id;
-
-    const checkboxLabel = document.createElement("label");
-    checkboxLabel.textContent = label;
-    checkboxLabel.htmlFor = id;
-
-    container.appendChild(checkbox);
-    container.appendChild(checkboxLabel);
-  } else {
-    const input = document.createElement("input");
-    input.type = type;
-    input.id = id;
-    input.placeholder = label;
-    container.appendChild(input);
-  }
-
-  return container;
 };
 
 export const addBookCreationInputs = () => {
@@ -106,7 +78,7 @@ export const addBookCreationInputs = () => {
   section.appendChild(name);
 
   const content = document.createElement("div");
-  content.className = "content";
+  content.id = "create";
   section.appendChild(content);
 
   const bookName = createInput("text", "bookName", "Add name here");
