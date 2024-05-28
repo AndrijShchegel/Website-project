@@ -8,7 +8,7 @@ const app = express();
 const port = 3000;
 
 const pool = new Pool({
-  user: "andrij",
+  user: "postgres",
   host: "localhost",
   database: "Web-database",
   password: "passwd",
@@ -88,9 +88,9 @@ app.post("/login", async (req, res) => {
   }
 });
 
-const verifyToken = (authHeader, res) => {
+const verifyToken = authHeader => {
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({ error: "Unauthorized: Missing or invalid token format" });
+    throw new Error("Unauthorized: Missing or invalid token format");
   }
 
   const token = authHeader.split(" ")[1];
@@ -99,7 +99,7 @@ const verifyToken = (authHeader, res) => {
     const decoded = jwt.verify(token, "secret-1998");
     return decoded.email; // Return the decoded information
   } catch (err) {
-    return res.status(401).json({ error: "Unauthorized: Invalid token" });
+    throw new Error("Unauthorized: Invalid token");
   }
 };
 
@@ -109,10 +109,15 @@ app.post("/access", async (req, res) => {
   const accessList = [];
 
   let client;
+  let email;
 
   try {
-    const email = verifyToken(authHeader, res);
+    email = verifyToken(authHeader);
+  } catch (error) {
+    return res.status(401).json({ error: error.message });
+  }
 
+  try {
     client = await pool.connect();
 
     const results = await client.query(selectAdmin, [email]);
@@ -196,7 +201,7 @@ app.post("/delete-book", async (req, res) => {
   try {
     client = await pool.connect();
 
-    const results = await client.query(deleteBook, [bookName]);
+    await client.query(deleteBook, [bookName]);
 
     res.status(200).json({ message: "Book was deleted!" });
   } catch (error) {
