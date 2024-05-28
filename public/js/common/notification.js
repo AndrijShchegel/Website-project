@@ -17,3 +17,16 @@ export const createNotification = (className, text) => {
   });
   notification.appendChild(alert);
 };
+
+export const checkForNotification = () => {
+  const error = sessionStorage.getItem("error");
+  if (error) {
+    createNotification("alert", error);
+    sessionStorage.removeItem("error");
+  }
+  const success = sessionStorage.getItem("success");
+  if (success) {
+    createNotification("alert success", success);
+    sessionStorage.removeItem("success");
+  }
+};

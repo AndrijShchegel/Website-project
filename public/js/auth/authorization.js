@@ -71,7 +71,7 @@ const submitLogin = async (email, password, content, closeEvent) => {
     if (response.ok) {
       localStorage.setItem("token", data.token);
 
-      createNotification("alert success", data.message);
+      sessionStorage.setItem("success", data.message);
 
       closePopup(closeEvent);
 

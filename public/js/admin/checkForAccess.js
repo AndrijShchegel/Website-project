@@ -1,5 +1,3 @@
-import { createNotification } from "../common/notification.js";
-
 export const checkForAccess = async () => {
   const token = localStorage.getItem("token");
   if (token) {
@@ -18,12 +16,14 @@ export const checkForAccess = async () => {
           if (window.location.pathname === link) return;
         }
       } else {
-        createNotification("alert", result.error);
         localStorage.removeItem("token");
+        sessionStorage.setItem("error", result.error);
       }
     } catch (error) {
-      createNotification("alert", error);
+      sessionStorage.setItem("error", error);
     }
+  } else {
+    sessionStorage.setItem("error", "To see admin page you must be logged in");
   }
   window.location.replace("/");
 };
