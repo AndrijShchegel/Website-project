@@ -263,7 +263,7 @@ export const createSettingsButton = () => {
   button.addEventListener("click", () => { settings(); });
 
   const image = document.createElement("img");
-  image.src = "images/gear.jpg";
+  image.src = "/images/gear.jpg";
   image.alt = "Settings";
   button.appendChild(image);
 };

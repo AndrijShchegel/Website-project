@@ -18,19 +18,19 @@ const pool = new Pool({
 app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json());
 
-app.get("/", (req, res) => {
-  const adminPath = path.join(__dirname, "public", "home.html");
-  res.sendFile(adminPath);
+app.get("/", (_, res) => {
+  const homePath = path.join(__dirname, "public", "home.html");
+  res.sendFile(homePath);
 });
 
-app.get("/admin", (req, res) => {
+app.get("/admin", (_, res) => {
   const adminPath = path.join(__dirname, "public", "admin.html");
   res.sendFile(adminPath);
 });
 
-app.get("/library", (req, res) => {
-  const adminPath = path.join(__dirname, "public", "library.html");
-  res.sendFile(adminPath);
+app.get("/library", (_, res) => {
+  const libraryPath = path.join(__dirname, "public", "library.html");
+  res.sendFile(libraryPath);
 });
 
 app.post("/register", async (req, res) => {
@@ -237,6 +237,54 @@ app.post("/update-book", async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
     if (client) { client.release(); }
+  }
+});
+
+app.get("/about-book", async (req, res) => {
+  const { uniqueName } = req.body;
+  const selectBook = "SELECT * FROM bookInformation WHERE uniqueName = $1";
+  let client;
+  try {
+    client = await pool.connect();
+    const result = await client.query(selectBook, [uniqueName]);
+    const book = result.rows[0]
+
+    if (book) {
+      res.status(200).json( book );
+    } else {
+      res.status(404).send("Book not found");
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  } finally {
+    if (client) {
+      client.release();
+    }
+  }
+});
+
+app.get("/book/:uniqueName", async (req, res) => {
+  const { uniqueName } = req.params;
+  const selectBook = "SELECT * FROM bookInformation WHERE uniqueName = $1";
+  let client;
+  try {
+    client = await pool.connect();
+    const result = await client.query(selectBook, [uniqueName]);
+
+    if (result.rows[0]) {
+      const bookPath = path.join(__dirname, "public", "book.html");
+      res.sendFile(bookPath);
+    } else {
+      res.status(404).send("Book not found");
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  } finally {
+    if (client) {
+      client.release();
+    }
   }
 });
 

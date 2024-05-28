@@ -33,16 +33,20 @@ const transformGenres = genres => {
   return genreList;
 };
 
-const createBookTitle = (name, parent) => {
+const createBookTitle = (name, uniqueName, parent) => {
   const title = document.createElement("h3");
-  title.className = "title srinked";
+  title.className = "title";
   title.textContent = name;
+  title.style.cursor = "pointer";
+  title.addEventListener("click", () => {
+    window.location.href = `/book/${uniqueName}`;
+  });
   parent.appendChild(title);
 };
 
 const createBookSubtitle = (description, parent) => {
   const subtitle = document.createElement("div");
-  subtitle.className = "subtitle srinked";
+  subtitle.className = "subtitle";
   const transformedText = transformToHTML(description);
   subtitle.innerHTML = transformedText;
   parent.appendChild(subtitle);
@@ -76,7 +80,7 @@ const createBookElement = book => {
   bookContent.className = "content";
   bookIntro.appendChild(bookContent);
 
-  createBookTitle(book.name, bookContent);
+  createBookTitle(book.name, book.uniquename, bookContent);
   createBookSubtitle(book.description, bookContent);
   createBookGenres(book.genres, bookIntro);
 
